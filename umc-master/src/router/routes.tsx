@@ -1,1 +1,5 @@
-//페이지 라우팅 파일
+import { createBrowserRouter } from 'react-router-dom';
+
+const router = createBrowserRouter([]);
+
+export default router;

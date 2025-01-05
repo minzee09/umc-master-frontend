@@ -1,13 +1,18 @@
 #!/bin/sh
 
-# 현재 디렉토리를 umc-master로 이동
-cd umc-master
+# 스크립트 위치 기준으로 작업 디렉토리 변경 (umc-master로 이동)
+cd "$(dirname "$0")"
 
-# output 디렉토리 생성 (이미 존재하면 삭제 후 생성)
+# 상위 디렉토리로 이동 (frontend 레포지토리 루트로 이동)
+cd ../
+
+# output 디렉토리 초기화 (이미 존재하면 삭제 후 새로 생성)
 rm -rf output
 mkdir output
 
-# umc-master 내부의 모든 파일을 output 디렉토리로 복사
-cp -R ./* ./output
+# umc-master 디렉토리의 모든 파일을 output 디렉토리로 복사
+cp -R ./umc-master/* ./output/
 
-# 필요한 경우 output 디렉토리에서 추가 작업 수행 가능
+# output 디렉토리의 내용을 다시 umc-master로 복사
+cp -R ./output/* ./umc-master/
+

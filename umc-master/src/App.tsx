@@ -1,11 +1,9 @@
-import { RouterProvider } from 'react-router-dom';
-import router from './router/routes.tsx';
-import React from 'react';
+import Router from './router/routes.tsx';
 
 function App() {
   return (
     <>
-      <RouterProvider router={router} />
+      <Router />
     </>
   );
 }

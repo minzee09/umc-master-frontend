@@ -11,6 +11,7 @@
 
 * {
   margin: 0;
+  text-decoration: none;
 }
 
 body {
@@ -28,7 +29,10 @@ svg {
 }
 
 input,
-button,
+button {
+  background: none;
+  border: none;
+}
 textarea,
 select {
   font: inherit;

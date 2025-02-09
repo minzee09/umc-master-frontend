@@ -4,7 +4,6 @@ import LandingPage from '@pages/landing/LandingPage';
 import LoginPage from '@pages/auth/LoginPage';
 import SignupPage from '@pages/auth/SignUpPage';
 import MyPage from '@pages/mypage/MyPage';
-import MyPage from '@pages/mypage/MyPage';
 import MainPage from '@pages/main/MainPage';
 import SearchPage from '@pages/search/SearchPage';
 import SaveTipPage from '@pages/saveTip/SaveTipPage';

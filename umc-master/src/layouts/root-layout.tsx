@@ -1,12 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { useState } from 'react';
 import NavigationBar from '@components/NavigationBar/NavigationBar';
 import Footer from '@components/Footer/Footer';
+import { useAuthStore } from '@store/authStore';
 
 const RootLayout: React.FC = () => {
-  // TODO: 로그인 로직 연결
-  const [auth] = useState(false);
+  const { auth } = useAuthStore();
 
   return (
     <Layout>

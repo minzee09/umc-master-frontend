@@ -5,6 +5,7 @@ import axios, { AxiosInstance } from 'axios';
 const axiosInstance: AxiosInstance = axios.create({
   headers: {
     accept: 'application/json',
+    Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`,
   },
   baseURL: import.meta.env.VITE_BASE_URL,
 });
@@ -15,7 +16,7 @@ const refreshAccessToken = async (refreshToken: string) => {
     const response = await axiosInstance.post('/token/refresh', {
       refreshToken,
     });
-    console.log('New Access Token from Server:', response.data.result.accessToken);
+    // console.log('New Access Token from Server:', response.data.result.accessToken);
     return response.data.result.accessToken;
   } catch (error) {
     console.error('Error refreshing access token:', error);
@@ -29,7 +30,7 @@ axiosInstance.interceptors.request.use((config) => {
   if (accessToken) {
     config.headers['Authorization'] = `Bearer ${accessToken}`;
   }
-  console.log('Request Headers:', config.headers);
+  // console.log('Request Headers:', config.headers);
   return config;
 });
 
@@ -53,12 +54,12 @@ axiosInstance.interceptors.response.use(
           });
 
           // 새 토큰이 적용되는지 확인하기 위한 로그 추가
-          console.log('New Access Token:', newAccessToken);
+          // console.log('New Access Token:', newAccessToken);
 
           // 원래 요청에 새로운 토큰 적용
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
-          console.log('Retrying request with new token:', originalRequest.headers['Authorization']);
+          // console.log('Retrying request with new token:', originalRequest.headers['Authorization']);
 
           // 재시도
           return axiosInstance(originalRequest);

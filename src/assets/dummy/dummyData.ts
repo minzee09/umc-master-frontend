@@ -7,6 +7,7 @@ const dummyData = [
     likes: 1200,
     bookmarks: 800,
     date: '2025.01.20',
+    id: 1,
   },
   {
     image: dummyImage,
@@ -14,6 +15,7 @@ const dummyData = [
     likes: 450,
     bookmarks: 300,
     date: '2025.01.15',
+    id: 2,
   },
   {
     image: dummyImage,
@@ -21,6 +23,7 @@ const dummyData = [
     likes: 980,
     bookmarks: 670,
     date: '2025.01.18',
+    id: 3,
   },
   {
     image: dummyImage,
@@ -28,6 +31,7 @@ const dummyData = [
     likes: 1300,
     bookmarks: 950,
     date: '2025.01.12',
+    id: 4,
   },
   {
     image: dummyImage,
@@ -35,6 +39,7 @@ const dummyData = [
     likes: 890,
     bookmarks: 430,
     date: '2025.01.10',
+    id: 5,
   },
 ];
 

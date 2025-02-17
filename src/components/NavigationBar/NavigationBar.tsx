@@ -67,7 +67,7 @@ const Container = styled.div`
   left: 0;
   width: 100%;
   background-color: ${({ theme }) => theme.colors.text.white};
-  z-index: 1000;
+  z-index: 9999;
 `;
 
 const Nav = styled.nav`

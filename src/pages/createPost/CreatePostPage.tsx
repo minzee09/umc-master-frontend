@@ -1,41 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ImageUploader from './components/ImageUpload';
 import Typography from '@components/common/typography';
 import styled from 'styled-components';
 import Title from './components/Title';
 import CategoryInputSection from '@pages/main/components/CategoriesInputSection';
 import dummyCategories from '@assets/dummy/dummyCategories';
-import axiosInstance from '@apis/axios-instance';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { useModalStore } from '@store/modalStore';
-
-interface NewPost {
-  title: string;
-  content: string;
-  hashtags: string[][];
-}
-
-const createPost = async (newPost: NewPost): Promise<void> => {
-  try {
-    await axiosInstance.post<void>('/tips', newPost, {
-      headers: {
-        Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`,
-      },
-    });
-  } catch (error: any) {
-    console.error('서버 응답 데이터:', error.response?.data);
-    console.error('에러 상세 정보:', error); // 추가 로그
-    if (error.response && error.response.data) {
-      throw new Error(`서버 에러: ${error.response.status} - ${error.response.data.message}`);
-    } else if (error.request) {
-      throw new Error('서버에 응답이 없습니다. (네트워크 문제일 수 있습니다)');
-    } else {
-      throw new Error(`요청 설정 에러: ${error.message}`);
-    }
-  }
-};
+import { useUserStore } from '@store/userStore';
+import { useTipCreateAndPost } from '@apis/queries/useTipMutations';
 
 const CreatePostPage: React.FC = () => {
   const [images, setImages] = useState<File[]>([]);
@@ -43,20 +14,12 @@ const CreatePostPage: React.FC = () => {
   const [context, setContext] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const navigate = useNavigate();
-  const showModal = useModalStore((state) => state.showModal);
+  const { user, fetchUser } = useUserStore();
+  const mutation = useTipCreateAndPost();
 
-  const mutation = useMutation({
-    mutationFn: (newPost: NewPost) => createPost(newPost),
-    onSuccess: () => {
-      showModal();
-      navigate('/community', { replace: true });
-      window.scrollTo(0, 0);
-    },
-    onError: (error: Error) => {
-      console.log(`등록에 실패했습니다: ${error.message}`);
-    },
-  });
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
 
   const handleTagClick = (tag: string) => {
     setSelectedTags((prev) => {
@@ -71,8 +34,8 @@ const CreatePostPage: React.FC = () => {
     });
   };
 
-  const isFormValid = text.trim() !== '' && context.trim() !== '' && selectedTags.length > 0;
-
+  const isFormValid =
+    text.trim() !== '' && context.trim() !== '' && selectedTags.length > 0 && user?.user_id !== undefined;
   return (
     <>
       <MainTitle>
@@ -108,12 +71,11 @@ const CreatePostPage: React.FC = () => {
         $isActive={isFormValid}
         onClick={() => {
           if (isFormValid) {
-            const formattedTags = selectedTags.map((tag) => `#${tag}`);
-
             mutation.mutate({
               title: text,
               content: context,
-              hashtags: [formattedTags],
+              hashtags: selectedTags,
+              imageUrls: images,
             });
           } else {
             alert('모든 필드를 입력해주세요.');

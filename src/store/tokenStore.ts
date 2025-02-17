@@ -9,20 +9,20 @@ interface TokenStore {
 
 export const useTokenStore = create<TokenStore>((set) => ({
   accessToken: null,
-  refreshToken: `${import.meta.env.VITE_REFRESH_TOKEN}`,
+  refreshToken: `${import.meta.env.VITE_REFRESH_TOKEN}` /* 로그인 기능 완성 후 수정 예정임 */,
   setTokens: (tokens) => {
-    console.log('Setting Tokens:', tokens);
+    // console.log('Setting Tokens:', tokens);
     set(() => ({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     }));
-    console.log('Tokens after Setting:', useTokenStore.getState());
+    // console.log('Tokens after Setting:', useTokenStore.getState());
   },
   clearTokens: () => {
     set(() => ({
       accessToken: null,
       refreshToken: null,
     }));
-    console.log('Tokens Cleared:', useTokenStore.getState());
+    // console.log('Tokens Cleared:', useTokenStore.getState());
   },
 }));

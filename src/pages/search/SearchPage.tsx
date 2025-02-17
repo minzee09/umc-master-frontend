@@ -1,10 +1,10 @@
 import SearchSection from '@components/SearchBar/SearchSection';
 import TipsSection from '@pages/main/components/TipsSection';
-import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import RecommendTitle from './components/RecommendTitle';
 import RecommendedTipsSection from './components/RecommendTipsSection';
 import dummyImage from '@assets/dummyImage/dummy.jpeg';
+import { useSearchList } from '@apis/queries/useSearchList';
 
 const dummyData = [
   {
@@ -65,24 +65,32 @@ const dummyData = [
   },
 ];
 
-const SearchPage = () => {
-  const [searchParams] = useSearchParams();
-  const [searchValue, setSearchValue] = useState<string>(searchParams.get('query') || '');
+const SearchPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = searchParams.get('query') || '';
+  const page = Number(searchParams.get('page')) || 1;
+  const hashtagsParam = searchParams.get('hashtags') || '';
+  const tags = hashtagsParam ? hashtagsParam.split(',') : [];
+
+  const { data: searchResults, isFetching } = useSearchList({ query, tags, page, limit: 10 });
+
+  const tipsFromApi = searchResults ? searchResults.result : [];
 
   const handleSearch = (value: string) => {
-    setSearchValue(value);
+    setSearchParams({ query: value, page: '1' });
   };
 
   return (
     <>
       <SearchSection
-        highlight={`'${searchValue || '검색어'}'`}
+        highlight={`'${query || '검색어'}'`}
         backText="에 대한 검색 결과입니다."
         onSearch={handleSearch}
         marginTop="80px"
       />
-      <TipsSection showLikes={false} />
-      <RecommendTitle title={searchValue} />
+      <TipsSection showLikes={false} items={tipsFromApi} isLoading={isFetching} />
+
+      <RecommendTitle title={query} />
       <RecommendedTipsSection items={dummyData.slice(0, 8)} />
     </>
   );

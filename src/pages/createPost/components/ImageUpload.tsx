@@ -2,6 +2,7 @@
 import styled from 'styled-components';
 import PlusIcon from '@assets/icons/plus.svg?react';
 import { FiX } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
 
 interface ImageUploaderProps {
   maxImages: number;
@@ -11,6 +12,19 @@ interface ImageUploaderProps {
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ maxImages, images, onUpload, onDelete }) => {
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    // 새 파일 목록이 들어올 때마다 blob URL을 생성
+    const newUrls = images.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(newUrls);
+
+    // 언마운트되거나 images가 바뀔 때 이전 URL 해제
+    return () => {
+      newUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [images]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -19,7 +33,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ maxImages, images, onUplo
         onUpload(files.slice(0, maxImages - images.length));
         return;
       }
-      onUpload(files.slice(0, files.length));
+      onUpload(files);
     }
   };
 
@@ -29,7 +43,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ maxImages, images, onUplo
         <ImageBox key={index}>
           {images[index] ? (
             <>
-              <UploadedImage src={URL.createObjectURL(images[index])} alt={`uploaded-${index}`} />
+              <UploadedImage src={previewUrls[index]} />
               <DeleteButton onClick={() => onDelete(index)}>
                 <FiX />
               </DeleteButton>

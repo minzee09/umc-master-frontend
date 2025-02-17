@@ -7,7 +7,7 @@ import Card from '@components/Card/Card';
 import SkeletonCard from '@components/Skeleton/SkeletonCard';
 import Typography from '@components/common/typography';
 import usePagination from '@hooks/usePagination';
-import dummyData from '@assets/dummy/dummyData';
+import dummyImage from '@assets/dummyImage/dummy.jpeg';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface TipsSectionProps {
@@ -16,15 +16,36 @@ interface TipsSectionProps {
   showLikes?: boolean;
   showRecent?: boolean;
   defaultSort?: 'latest' | 'likes' | 'bookmarks';
+  isLoading?: boolean;
+  items?: TipItem[];
+}
+
+interface Hashtag {
+  hashtagId: number;
+  name: string;
+}
+
+interface Image {
+  media_url: string;
+  media_type: string;
+}
+interface Author {
+  userId: number;
+  nickname: string;
+  profileImageUrl: string | null;
 }
 
 interface TipItem {
-  image: string;
-  text: string;
-  likes?: number;
-  bookmarks?: number;
-  date?: string;
-  id: string;
+  tipId: number;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  hashtags: Hashtag[];
+  imageUrls: Image[];
+  likesCount: number;
+  savesCount: number;
+  author: Author;
 }
 
 const TipsSection: React.FC<TipsSectionProps> = ({
@@ -32,27 +53,42 @@ const TipsSection: React.FC<TipsSectionProps> = ({
   showArrows = false,
   showLikes = true,
   showRecent = false,
+  items,
+  isLoading,
   defaultSort = 'latest',
 }) => {
   const navigate = useNavigate();
   const [sortOption, setSortOption] = useState<'likes' | 'latest' | 'bookmarks'>(defaultSort);
   const { page, handlePrevPage, handleNextPage } = usePagination(1);
-  const { data: tipsData, isFetching, isError } = useTipList({ title: title || '', page, sortOption });
+  const {
+    data: tipsData,
+    isFetching,
+    isError,
+  } = items
+    ? { data: undefined, isFetching: false, isError: false } // 이미 데이터가 주입된 경우 API 호출하지 않음
+    : useTipList({ title: title || '', page, sortOption });
+
+  // 만약 외부 데이터가 없으면 내부 데이터 사용
+  const tips: TipItem[] = items || tipsData?.result?.tips || [];
+  const loading = isLoading ?? (items ? false : isFetching);
+
   const [direction, setDirection] = useState<number>(0);
 
-  const tips = tipsData?.data?.length > 0 ? tipsData.data : dummyData;
-
   // 정렬된 아이템
-  const sortedItems = (tips || []).sort((a: TipItem, b: TipItem) => {
-    if (sortOption === 'likes') return (b.likes || 0) - (a.likes || 0);
-    if (sortOption === 'latest') return new Date(a.date || '').getTime() - new Date(b.date || '').getTime();
-    if (sortOption === 'bookmarks') return (b.bookmarks || 0) - (a.bookmarks || 0);
-    return 0;
-  });
+  const sortedItems =
+    tips.length > 0
+      ? [...tips].sort((a, b) => {
+          if (sortOption === 'likes') return (b.likesCount || 0) - (a.likesCount || 0);
+          if (sortOption === 'latest')
+            return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+          if (sortOption === 'bookmarks') return (b.savesCount || 0) - (a.savesCount || 0);
+          return 0;
+        })
+      : [];
 
   if (isError) return <div>Something went wrong...</div>; // 에러 발생 시 표시
 
-  const handleCardClick = (id: string) => {
+  const handleCardClick = (id: number) => {
     navigate(`/save-tip/${id}`);
   };
 
@@ -86,31 +122,35 @@ const TipsSection: React.FC<TipsSectionProps> = ({
             </>
           )}
         </SortButtonGroup>
-        <AnimatePresence initial={false} custom={direction} mode="wait">
-          <CardsWrapper
-            key={page}
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.5 }}
-          >
-            {isFetching
-              ? Array.from({ length: 5 }).map((_, index) => <SkeletonCard key={index} />)
-              : sortedItems.map((item: TipItem, index: number) => (
-                  <Card
-                    key={index}
-                    image={item.image}
-                    text={item.text}
-                    likes={item.likes || 0}
-                    bookmarks={item.bookmarks || 0}
-                    date={item.date || ''}
-                    onClick={() => handleCardClick(item.id)}
-                  />
-                ))}
-          </CardsWrapper>
-        </AnimatePresence>
+        <CardsOuterWrapper>
+          <AnimatePresence initial={false} custom={direction} mode="wait">
+            <CardsWrapper
+              key={page}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.5 }}
+            >
+              {loading
+                ? Array.from({ length: 5 }).map((_, index) => <SkeletonCard key={index} />)
+                : sortedItems
+                    .slice(0, 5)
+                    .map((item: TipItem, index: number) => (
+                      <Card
+                        key={index}
+                        image={item?.imageUrls[0]?.media_url || dummyImage}
+                        text={item.title}
+                        likes={item.likesCount || 0}
+                        bookmarks={item.savesCount || 0}
+                        date={item.createdAt?.slice(0, 10) || ''}
+                        onClick={() => handleCardClick(item.tipId)}
+                      />
+                    ))}
+            </CardsWrapper>
+          </AnimatePresence>
+        </CardsOuterWrapper>
 
         {showArrows && (
           <>
@@ -187,6 +227,14 @@ const SectionHeader = styled.div`
   color: ${({ theme }) => theme.colors.primary[900]};
 `;
 
+const CardsOuterWrapper = styled.div`
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  /* 필요에 따라 고정 높이 또는 min-height를 지정 */
+  min-height: 300px;
+`;
+
 const CardsWrapper = styled(motion.div)`
   display: grid;
   grid-template-columns: repeat(5, minmax(240px, 1fr));
@@ -194,6 +242,7 @@ const CardsWrapper = styled(motion.div)`
   position: relative;
   max-width: 1280px; /* 원하는 최대 너비 설정 */
   margin: 0 auto; /* 가운데 정렬 */
+  z-index: 0;
 `;
 
 const LeftArrow = styled.span`

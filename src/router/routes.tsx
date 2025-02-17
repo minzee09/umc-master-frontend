@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import RoutePaths from './routePaths';
 import LandingPage from '@pages/landing/LandingPage';
 import LoginPage from '@pages/auth/LoginPage';
@@ -15,30 +15,42 @@ import MagazineDetailPage from '@pages/magazine/MagazineDetailPage';
 import RootLayout from '@layouts/root-layout';
 import KakaoCallback from '@pages/auth/KakaoCallback';
 import FindPrivacy from '@pages/auth/FindPrivacy';
+import ChallengePage from '@pages/challenge/ChallengePage';
+import ChatPage from '@pages/chat/ChatPage';
+import ErrorPage from '@pages/error/ErrorPage';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        errorElement: <ErrorPage />,
+        children: [
+          { index: true, element: <LandingPage /> },
+          { path: RoutePaths.LOGIN, element: <LoginPage /> },
+          { path: RoutePaths.SIGNUP, element: <SignupPage /> },
+          { path: RoutePaths.FINDPRIVACY, element: <FindPrivacy /> },
+          { path: RoutePaths.MYPAGE, element: <MyPage /> },
+          { path: RoutePaths.MAIN, element: <MainPage /> },
+          { path: RoutePaths.SEARCH, element: <SearchPage /> },
+          { path: RoutePaths.SAVE_TIP, element: <SaveTipPage /> },
+          { path: RoutePaths.SAVE_TIP_DETAIL, element: <SaveTipDetailPage /> },
+          { path: RoutePaths.CREATE_POST, element: <CreatePostPage /> },
+          { path: RoutePaths.COMMUNITY, element: <CommunityPage /> },
+          { path: RoutePaths.MAGAZINE, element: <MagazinePage /> },
+          { path: RoutePaths.MAGAZINE_DETAIL, element: <MagazineDetailPage /> },
+          { path: RoutePaths.KAKAO_CALLBACK, element: <KakaoCallback /> },
+          { path: RoutePaths.CHALLENGE, element: <ChallengePage /> },
+          { path: RoutePaths.CHAT, element: <ChatPage /> },
+        ],
+      },
+    ],
+  },
+]);
 
 const Router: React.FC = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<RootLayout />}>
-          <Route index element={<LandingPage />} />
-          <Route path={RoutePaths.LOGIN} element={<LoginPage />} />
-          <Route path={RoutePaths.SIGNUP} element={<SignupPage />} />
-          <Route path={RoutePaths.FINDPRIVACY} element={<FindPrivacy />} />
-          <Route path={RoutePaths.MYPAGE} element={<MyPage />} />
-          <Route path={RoutePaths.MAIN} element={<MainPage />} />
-          <Route path={RoutePaths.SEARCH} element={<SearchPage />} />
-          <Route path={RoutePaths.SAVE_TIP} element={<SaveTipPage />} />
-          <Route path={RoutePaths.SAVE_TIP_DETAIL} element={<SaveTipDetailPage />} />
-          <Route path={RoutePaths.CREATE_POST} element={<CreatePostPage />} />
-          <Route path={RoutePaths.COMMUNITY} element={<CommunityPage />} />
-          <Route path={RoutePaths.MAGAZINE} element={<MagazinePage />} />
-          <Route path={RoutePaths.MAGAZINE_DETAIL} element={<MagazineDetailPage />} />
-          <Route path={RoutePaths.KAKAO_CALLBACK} element={<KakaoCallback />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default Router;

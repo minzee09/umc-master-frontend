@@ -16,6 +16,18 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSearch, ca
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // 상태 초기화 함수
+  const resetState = () => {
+    setSelectedTags([]);
+    setSearchQuery('');
+  };
+
+  // 모달 닫기 핸들러
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
   const handleTagClick = (tag: string) => {
     const isSelected = selectedTags.includes(tag);
     const updatedTags = isSelected ? selectedTags.filter((t) => t !== tag) : [...selectedTags, tag];
@@ -28,16 +40,17 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSearch, ca
     const searchParams = new URLSearchParams();
 
     if (query) searchParams.append('query', query);
-    if (tags) searchParams.append('tags', tags);
+    if (tags) searchParams.append('hashtags', tags);
 
     onSearch(searchParams.toString()); // 조합된 쿼리 문자열 전달
     onClose();
+    window.scrollTo(0, 0);
   };
 
   if (!isOpen) return null;
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay onClick={handleClose}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <SearchBarContainer>
           <ModalSearchBar onSearch={(value) => setSearchQuery(value)} />
@@ -61,7 +74,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSearch, ca
           />
         </ScrollableContent>
         <ButtonContainer>
-          <CancelButton onClick={onClose}>
+          <CancelButton onClick={handleClose}>
             <Typography variant="titleXxxSmall">취소</Typography>
           </CancelButton>
           <SearchButton onClick={handleSearch}>
@@ -91,7 +104,7 @@ const ModalOverlay = styled.div`
 const ModalContent = styled.div`
   background: white;
   width: clamp(300px, 50vw, 840px); /* 최소 300px, 최대 840px */
-  max-height: 90vh;
+  max-height: 80vh;
   border-radius: 30px;
   padding: 68px 60px 68px 60px;
   display: flex;

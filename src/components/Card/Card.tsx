@@ -35,7 +35,7 @@ const CardContainer = styled.div`
 `;
 
 const CardImageWrapper = styled.div`
-  border-radius: 16px;
+  border-radius: 10px;
   overflow: hidden;
 `;
 

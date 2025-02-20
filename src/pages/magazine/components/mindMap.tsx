@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import Img from '@assets/dummyImage/dummy.jpeg';
+import Img from '@assets/character/magazine.png';
 import theme from '@styles/theme';
 import Typography from '@components/common/typography';
+import { usePopularHashtags } from '@apis/queries/usePolicyQueries';
 
 const nodes = [
   { label: '#재활용1', x: '70%', y: '15%', color: theme.colors.primary[400] },
@@ -14,6 +15,8 @@ const nodes = [
 ];
 
 const MindMap = () => {
+  const { data } = usePopularHashtags({ limit: 6 });
+  console.log('인기 관심사 로그', data);
   return (
     <MapContainer>
       <LineContainer xmlns="http://www.w3.org/2000/svg">
@@ -52,17 +55,17 @@ const MindMap = () => {
           transition={{ duration: 0.8 }}
         />
       </CenterNode>
-      {nodes.map((node, index) => (
+      {data?.slice(0, nodes.length).map((hashtag, index) => (
         <Node
           key={index}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           whileHover={{ scale: 1.2, x: 5, y: 5 }}
           transition={{ duration: 0.8, delay: index * 0.2, type: 'spring', stiffness: 200, damping: 10 }}
-          style={{ left: node.x, top: node.y }}
-          color={node.color}
+          style={{ left: nodes[index].x, top: nodes[index].y }}
+          color={nodes[index].color}
         >
-          <Typography variant="bodyLarge">{node.label}</Typography>
+          <Typography variant="bodyLarge">#{hashtag.name}</Typography>
         </Node>
       ))}
     </MapContainer>

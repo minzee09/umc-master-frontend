@@ -15,13 +15,14 @@ interface NumberCardProps {
     userNumber: number;
   }[];
   showNumber?: boolean;
+  onCardClick: (id: number) => void;
 }
 
-const NumberCard: React.FC<NumberCardProps> = ({ cards, showNumber = true }) => {
+const NumberCard: React.FC<NumberCardProps> = ({ cards, showNumber = true, onCardClick }) => {
   return (
     <GridContainer>
       {cards.map((card, index) => (
-        <CardWrapper key={card.id}>
+        <CardWrapper key={card.id} onClick={() => onCardClick(card.id)}>
           {showNumber && (
             <CardNumber>
               <Typography variant="bodyXSmall">{index + 1}</Typography>

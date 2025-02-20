@@ -195,6 +195,7 @@ const StyledCheckbox = styled.input`
 
 const StyledTypography = styled(Typography)`
   color: ${({ theme }) => theme.colors.text.gray};
+  cursor: pointer;
 `;
 
 const Options = styled.div`

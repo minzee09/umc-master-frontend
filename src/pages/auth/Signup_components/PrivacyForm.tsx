@@ -11,7 +11,10 @@ interface District {
   label: string;
 }
 
-const PrivacyForm: React.FC<{ onCheckRequired: (isValid: boolean) => void }> = ({ onCheckRequired }) => {
+const PrivacyForm: React.FC<{ 
+  onCheckRequired: (isValid: boolean) => void;
+  onNicknameChange: (nickname: string) => void; 
+}> = ({ onCheckRequired, onNicknameChange }) => {
 
   const [selectedCity, setSelectedCity] = useState<string>("default");
   const [districts, setDistricts] = useState<District[]>([]);
@@ -22,7 +25,8 @@ const PrivacyForm: React.FC<{ onCheckRequired: (isValid: boolean) => void }> = (
   const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newNickname = e.target.value;
     setNickname(newNickname);
-
+    onNicknameChange(newNickname); // 상위 컴포넌트로 업데이트
+    console.log("닉네임: ", newNickname);
     // 닉네임이 0글자 이상일 때만 "다음" 버튼을 활성화
     onCheckRequired(newNickname.length > 0);
   };

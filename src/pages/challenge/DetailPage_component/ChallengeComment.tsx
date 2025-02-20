@@ -1,14 +1,14 @@
 /* eslint-disable react/prop-types */
 import Typography from "@components/common/typography";
 import { useCallback, useEffect, useRef, useState } from "react";
-// import { useParams } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import { generateComments } from "../dummydata/dummydata";
+import { generateComments } from "@pages/challenge/dummydata/dummydata";
 import SkeletonComment from "@components/Skeleton/SkeletonComment";
+import Star from "@assets/icons/kid_star.svg";
 
-
-const commentCount = 1000; // 실제 데이터에서 가져올 값
+const commentCount = 150; // 댓글 수 예시
 const formattedNumber = new Intl.NumberFormat().format(commentCount);
+const challengerNumber = '1,000'; // 누적 참가자 수 예시
 
 const MAX_LENGTH = 100;
 const COMMENTS_PER_LOAD = 3;
@@ -32,7 +32,7 @@ const CommentText: React.FC<{ text: string }> = ({ text }) => {
     );
   };
 
-const CommentView: React.FC = () => {
+const ChallengeComment: React.FC = () => {
 
   const theme = useTheme();
   // const { tipId } = useParams<{ tipId: string }>();
@@ -40,25 +40,10 @@ const CommentView: React.FC = () => {
   const comment = generateComments(1300);
   
   const [comments, setComments] = useState<{ author: string; date: string; time: string; comment: string }[]>(comment.slice(0, COMMENTS_PER_LOAD * 2));
-  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false); // 로딩 상태 관리
   const [hasMore, setHasMore] = useState(comment.length > COMMENTS_PER_LOAD);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
-
-  const handleAddComment = () => {
-    if (inputValue.trim().length === 0) return;
-    setComments((prevComments) => [
-      {
-        author: "내이름", // 예시로 새 댓글 작성자 지정
-        date: "2025.02.02", // 예시로 새 댓글 작성 날짜 지정
-        time: "2:43", // 예시로 새 댓글 작성 시간 지정
-        comment: inputValue, // 새 댓글 내용
-      },
-      ...prevComments,
-    ]);
-    setInputValue("");
-  };
 
   const loadMoreData = useCallback(() => {
     if (isLoading || !hasMore) return;
@@ -93,27 +78,27 @@ const CommentView: React.FC = () => {
 
   return (
     <Comment>
+      <Typography
+        variant="titleXxxSmall"
+        style={{color: theme.colors.text.gray}}
+      >누적 참가자 {challengerNumber}명</Typography>
       <CommentAdd>
         <Title>
           <Typography
             variant="headingXxxSmall"
             style={{color: theme.colors.text.black}}
-          >댓글</Typography>
-          <Typography 
-            variant="titleXxxSmall"
-            style={{color: theme.colors.text.gray}}
-          >({formattedNumber})</Typography>
+          >참가자 후기</Typography>
+          <StarScore>
+            <img src={Star} alt="별점"/>
+            <Typography 
+              variant="titleXxxSmall"
+              style={{color: theme.colors.text.black}}
+            >4.9 ({formattedNumber}개)</Typography>
+          </StarScore>
         </Title>
-        <StyledInput 
-          type={'text'} 
-          placeholder={'댓글을 작성해주세요. (최대 300자)'} 
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
-        />
       </CommentAdd>
       {comments.length === 0 && !isLoading ? (
-        <Typography variant="bodySmall">아직 댓글이 없습니다.</Typography>
+        <Typography variant="bodySmall">아직 참가자 후기가 없습니다.</Typography>
       ) : (
         <CommentList>
           {comments.map((cmt, index) => (
@@ -121,6 +106,13 @@ const CommentView: React.FC = () => {
               <Author>
                 <ProfileImg />
                 <AuthorInfo>
+                  <StarScore>
+                    <img src={Star} alt="별점"/>
+                    <img src={Star} alt="별점"/>
+                    <img src={Star} alt="별점"/>
+                    <img src={Star} alt="별점"/>
+                    <img src={Star} alt="별점"/>
+                  </StarScore>
                   <Typography variant="titleXxSmall" style={{ color: theme.colors.text.black }}>
                     {cmt.author}
                   </Typography>
@@ -132,9 +124,10 @@ const CommentView: React.FC = () => {
                       {cmt.time}
                     </Typography>
                   </CommentDate>
+                  <CommentText text={cmt.comment} />
                 </AuthorInfo>
               </Author>
-              <CommentText text={cmt.comment} />
+              
             </CommentCard>
           ))}
 
@@ -156,7 +149,7 @@ const CommentView: React.FC = () => {
   );
 };
 
-export default CommentView;
+export default ChallengeComment;
 
 const Comment = styled.div`
   display: flex;
@@ -176,33 +169,17 @@ const CommentAdd = styled.div`
 
 const Title = styled.div`
   display: flex;
-  align-items: center;
-  align-self: stretch;
-  gap: 10px;
+  width: 134px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 `
 
-const StyledInput = styled.input`
+const StarScore = styled.div`
   display: flex;
-  height: 72px;
-  padding: 23px 32px;
   align-items: center;
+  gap: 12px;
   align-self: stretch;
-  border-radius: 20px;
-  border: 2px solid ${({ theme }) => theme.colors.primary[400]};
-  background: ${({ theme }) => theme.colors.text.white};
-
-  color: ${({ theme }) => theme.colors.text.gray};
-
-  font-family: ${({ theme }) => theme.fontFamily.regular};
-  font-size: ${({ theme }) => theme.typography.body.small.size};
-  font-weight: ${({ theme }) => theme.typography.body.small.weight};
-  line-height: ${({ theme }) => theme.typography.body.small.lineHeight};
-  letter-spacing: -0.48px;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary[500]};
-  }
 `
 
 const CommentList = styled.div`
@@ -228,15 +205,15 @@ const Author = styled.div`
 `
 
 const ProfileImg = styled.div`
-  width: 60px;
-  height: 60px;
-  border-radius: 30px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50px;
   background: #D9D9D9;
 `
 
 const AuthorInfo = styled.div`
   display: flex;
-  width: 125px;
+  width: 900px;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;

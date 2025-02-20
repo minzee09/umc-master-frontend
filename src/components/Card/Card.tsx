@@ -40,8 +40,7 @@ const CardImageWrapper = styled.div`
 `;
 
 const CardImage = styled.img`
-  min-width: 240px;
-  width: 100%;
+  width: 240px;
   height: 200px;
   object-fit: cover;
 `;

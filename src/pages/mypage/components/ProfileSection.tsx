@@ -1,20 +1,53 @@
 import Typography from '@components/common/typography';
 import styled, { useTheme } from 'styled-components';
 import CameraImg from '@assets/icons/cameraImg.svg'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProfileEditModal from '../modal/ProfileEditModal';
+import { useUserStore } from '@store/userStore';
+import { getUsers } from '@apis/profileApi';
+import gray_character from '@assets/gray-character.png';
 
 
 const ProfileSection: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user, fetchUser, setProfileImageUrl } = useUserStore();
+  const [profileImageUrl, setProfileImageUrlLocal] = useState(user?.profile_image_url || gray_character);
+
+  useEffect(() => {
+    fetchUser(); // 컴포넌트 마운트 시 사용자 정보 가져오기
+  }, []);
+  getUsers();
 
   const theme = useTheme();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string;
+        setProfileImageUrlLocal(imageUrl); // 로컬 상태 업데이트
+        setProfileImageUrl(imageUrl); // 전역 상태 업데이트
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <ProfileCard>
       <State>
-        <ProfileImg/>
-        <Img src={CameraImg}/>
+        <ProfileImg src={profileImageUrl} alt="Profile Image"/>
+        <Img 
+          src={CameraImg}
+          onClick={() => document.getElementById('fileInput')?.click()}
+        />
+        <InputImg
+          id = "fileInput"
+          type = 'file'
+          accept = "image/*"
+          onChange={handleImageChange}
+        />
       </State>
       <Card>
         <Text>
@@ -22,7 +55,7 @@ const ProfileSection: React.FC = () => {
             <Typography 
               variant='headingXxxSmall'
               style={{color: theme.colors.text.black}}
-            >애니</Typography>
+            >{user?.nickname}</Typography>
             <Typography
               variant='bodySmall'
               style={{color: theme.colors.text.black}}
@@ -56,11 +89,13 @@ const State = styled.div`
   align-items: center;
 `
 
-const ProfileImg = styled.div`
+const ProfileImg = styled.img`
   width: 140px;
   height: 140px;
   background-color: rgb(230, 230, 230);
   border-radius: 50%;
+  object-fit: cover;  /* 이미지 비율 유지하면서 잘리도록 설정 */
+  object-position: center;  /* 이미지의 중심을 기준으로 정렬 */
 `
 
 const Img = styled.img`
@@ -72,11 +107,15 @@ const Img = styled.img`
   flex-shrink: 0;
 `
 
+const InputImg = styled.input`
+  display: none;
+`
+
 const Card = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 1100px;
+  width: 1240px;
   height: 140px;
   padding: 18px 56px 20px 56px;
   gap: 10px;

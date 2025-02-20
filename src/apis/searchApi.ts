@@ -36,19 +36,27 @@ export interface TipsResponse {
 }
 
 export interface GetTipsParams {
-  query: string;
+  query?: string;
   page: number;
   limit: number;
   tags?: string[];
+  sort?: 'latest' | 'likes' | 'saves';
 }
 
-export const getSearchTips = async ({ query, tags, page, limit }: GetTipsParams): Promise<TipsResponse> => {
+export const getSearchTips = async ({
+  query,
+  tags,
+  page,
+  limit,
+  sort = 'latest',
+}: GetTipsParams): Promise<TipsResponse> => {
   const response = await axiosInstance.get<TipsResponse>('/tips/search', {
     params: {
       query,
       hashtags: tags?.length ? tags.join(',') : undefined,
       page,
       limit,
+      sort,
     },
   });
   return response.data;

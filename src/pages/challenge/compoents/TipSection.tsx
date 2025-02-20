@@ -4,6 +4,7 @@ import NumberCard from '@components/Card/NumberCard';
 import dummyImage from '@assets/dummyImage/clean.png';
 import styled from 'styled-components';
 import SkeletonCard from '@components/Skeleton/SkeletonCard';
+import { useNavigate } from 'react-router-dom';
 
 interface Tip {
   id: number;
@@ -45,10 +46,17 @@ const TipSection = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useRef<HTMLDivElement | null>(null);
 
-  // 전체 더미 데이터를 최초 한 번 로드
+  // 초기 로딩도 비동기처럼 보여주기 위해 setTimeout 사용
   useEffect(() => {
-    const dummyData = generateDummyData(100, 1);
-    setAllData(dummyData);
+    setIsLoading(true);
+
+    const timer = setTimeout(() => {
+      const dummyData = generateDummyData(100, 1);
+      setAllData(dummyData);
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const sortedAllData = useMemo(() => {
@@ -72,13 +80,14 @@ const TipSection = () => {
   const loadMoreData = useCallback(() => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
+    // 추가 로딩도 1초 지연
     setTimeout(() => {
       setLoadedCount((prev) => prev + PAGE_SIZE);
       setIsLoading(false);
     }, 1000);
   }, [isLoading, hasMore]);
 
-  // IntersectionObserver를 이용하여 마지막 요소가 보이면 loadMoreData 호출
+  // IntersectionObserver: 마지막 요소 보이면 loadMoreData 호출
   useEffect(() => {
     if (isLoading || !hasMore) return;
     if (observerRef.current) observerRef.current.disconnect();
@@ -88,11 +97,18 @@ const TipSection = () => {
         loadMoreData();
       }
     });
-
-    if (lastElementRef.current) observerRef.current.observe(lastElementRef.current);
+    if (lastElementRef.current) {
+      observerRef.current.observe(lastElementRef.current);
+    }
 
     return () => observerRef.current?.disconnect();
   }, [isLoading, hasMore, loadMoreData]);
+
+  const navigate = useNavigate();
+
+  const handleCardClick = (id: number) => {
+    navigate(`/challenge/${id}`); // 상세 페이지로 이동
+  };
 
   return (
     <Container>
@@ -103,16 +119,22 @@ const TipSection = () => {
         onSortChange={setSortBy}
       />
 
-      <NumberCard cards={displayedCards} showNumber={sortBy !== 'latest'} />
+      {isLoading && displayedCards.length === 0 ? (
+        <SkeletonGrid>
+          {Array.from({ length: PAGE_SIZE }).map((_, index) => (
+            <SkeletonCard key={`initial${index}`} />
+          ))}
+        </SkeletonGrid>
+      ) : (
+        <NumberCard cards={displayedCards} showNumber={sortBy !== 'latest'} onCardClick={handleCardClick}/>
+      )}
 
-      {/* 마지막 요소 감지용 div */}
       {hasMore && !isLoading && <div ref={lastElementRef} style={{ height: '10px' }} />}
 
-      {/* 스켈레톤 UI */}
-      {isLoading && (
+      {isLoading && displayedCards.length > 0 && (
         <SkeletonGrid style={{ marginTop: '20px' }}>
           {Array.from({ length: PAGE_SIZE }).map((_, index) => (
-            <SkeletonCard key={`skeleton-${index}`} />
+            <SkeletonCard key={`more${index}`} />
           ))}
         </SkeletonGrid>
       )}

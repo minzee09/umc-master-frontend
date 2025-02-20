@@ -5,7 +5,11 @@ import { useEffect, useState } from "react";
 import { styled, useTheme } from "styled-components";
 
 
-const PasswordForm: React.FC<{ onCheckRequired: (isValid: boolean) => void }> = ({ onCheckRequired }) => {
+const PasswordForm: React.FC<{ 
+  onCheckRequired: (isValid: boolean) => void;
+  onPasswordChange: (password: string) => void;
+}> = ({ onCheckRequired, onPasswordChange }) => {
+
 
   const theme = useTheme();
 
@@ -19,6 +23,13 @@ const PasswordForm: React.FC<{ onCheckRequired: (isValid: boolean) => void }> = 
       onCheckRequired(false);
     }
   }, [password, confirmPassword]);
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    onPasswordChange(newPassword); // 상위 컴포넌트에 전달
+    console.log("비밀번호: ", newPassword);
+  };
   
   return (
     <Container>
@@ -31,7 +42,7 @@ const PasswordForm: React.FC<{ onCheckRequired: (isValid: boolean) => void }> = 
         type={'password'} 
         placeholder={'비밀번호 입력 (숫자, 영문자, 문자 포함 8~15자 이내)'}
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={handlePasswordChange}
       />
       <Input 
         errorMessage="" 

@@ -70,7 +70,9 @@ axiosInstance.interceptors.response.use(
         useTokenStore.getState().clearTokens();
 
         // 로그인 페이지로 리다이렉트
-        window.location.href = RoutePaths.LOGIN;
+        if (window.location.pathname !== RoutePaths.LOGIN) {
+          window.location.href = RoutePaths.LOGIN;
+        }
 
         return Promise.reject(refreshError);
       }

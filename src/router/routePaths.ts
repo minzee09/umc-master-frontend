@@ -14,6 +14,8 @@ const RoutePaths = Object.freeze({
   MAGAZINE_DETAIL: '/magazine/:magazineId',
   KAKAO_CALLBACK: '/oauth/kakao/callback',
   CHALLENGE: '/challenge',
+  MYCHALLENGE: '/mychallenge',
+  CHALLENGE_DETAIL: '/challenge/:id',
   CHAT: '/chat',
 });
 

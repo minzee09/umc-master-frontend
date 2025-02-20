@@ -9,15 +9,24 @@ import Typography from '@components/common/typography';
 import usePagination from '@hooks/usePagination';
 import dummyImage from '@assets/dummyImage/dummy.jpeg';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useSearchList } from '@apis/queries/useSearchList';
+import BigCard from '@components/Card/BigCard';
+import SkeletonBigCard from '@components/Skeleton/SkeletonBigCard';
 
 interface TipsSectionProps {
   title?: string;
   showArrows?: boolean;
   showLikes?: boolean;
   showRecent?: boolean;
-  defaultSort?: 'latest' | 'likes' | 'bookmarks';
+  defaultSort?: 'latest' | 'likes' | 'saves';
   isLoading?: boolean;
   items?: TipItem[];
+  tags?: string[];
+  timeFilter?: '7days' | 'today' | '24h' | 'none';
+  isSearchSection?: boolean;
+  isBigCard?: boolean;
+  query?: string;
+  isMoreLimit?: boolean;
 }
 
 interface Hashtag {
@@ -48,6 +57,34 @@ interface TipItem {
   author: Author;
 }
 
+type TimeFilter = '7days' | 'today' | '24h' | 'none';
+
+function filterByTime(tips: TipItem[], timeFilter: TimeFilter) {
+  if (timeFilter === 'none') return tips;
+
+  const now = new Date();
+  const filterDates: Record<TimeFilter, () => { start: Date; end?: Date }> = {
+    '7days': () => ({
+      start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+    }),
+    '24h': () => ({
+      start: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+    }),
+    today: () => ({
+      start: new Date(now.setHours(0, 0, 0, 0)),
+      end: new Date(now.setHours(23, 59, 59, 999)),
+    }),
+    none: () => ({ start: new Date(0) }),
+  };
+
+  const { start, end } = filterDates[timeFilter]();
+
+  return tips.filter((tip) => {
+    const created = new Date(tip.createdAt);
+    return end ? created >= start && created <= end : created >= start;
+  });
+}
+
 const TipsSection: React.FC<TipsSectionProps> = ({
   title,
   showArrows = false,
@@ -56,32 +93,55 @@ const TipsSection: React.FC<TipsSectionProps> = ({
   items,
   isLoading,
   defaultSort = 'latest',
+  timeFilter = 'none',
+  tags,
+  items,
+  isSearchSection = false,
+  isBigCard = false,
+  query,
+  isMoreLimit = false,
 }) => {
   const navigate = useNavigate();
-  const [sortOption, setSortOption] = useState<'likes' | 'latest' | 'bookmarks'>(defaultSort);
+  const [sortOption, setSortOption] = useState<'likes' | 'latest' | 'saves'>(defaultSort);
   const { page, handlePrevPage, handleNextPage } = usePagination(1);
-  const {
-    data: tipsData,
-    isFetching,
-    isError,
-  } = items
-    ? { data: undefined, isFetching: false, isError: false } // 이미 데이터가 주입된 경우 API 호출하지 않음
-    : useTipList({ title: title || '', page, sortOption });
-
-  // 만약 외부 데이터가 없으면 내부 데이터 사용
-  const tips: TipItem[] = items || tipsData?.result?.tips || [];
-  const loading = isLoading ?? (items ? false : isFetching);
-
   const [direction, setDirection] = useState<number>(0);
 
-  // 정렬된 아이템
+  const {
+    data: searchData,
+    isFetching: isSearchFetching,
+    isError: isSearchError,
+  } = isSearchSection && !items
+    ? useSearchList({
+        query,
+        tags,
+        page,
+        limit: isMoreLimit ? 10 : 5,
+        sort: sortOption,
+      })
+    : { data: undefined, isFetching: false, isError: false };
+
+  const {
+    data: tipsData,
+    isFetching: isTipsFetching,
+    isError: isTipsError,
+  } = !isSearchSection
+    ? useTipList({ title: title || '', page, sortOption })
+    : { data: undefined, isFetching: false, isError: false };
+
+  // 만약 외부 데이터가 없으면 내부 데이터 사용
+  const tips: TipItem[] = items || (isSearchSection ? searchData?.result : tipsData?.result?.tips) || [];
+  const isFetching = isSearchFetching || isTipsFetching;
+  const isError = isSearchError || isTipsError;
+
+  const filteredTips = filterByTime(tips, timeFilter);
+
   const sortedItems =
-    tips.length > 0
-      ? [...tips].sort((a, b) => {
+    filteredTips.length > 0
+      ? [...filteredTips].sort((a, b) => {
           if (sortOption === 'likes') return (b.likesCount || 0) - (a.likesCount || 0);
           if (sortOption === 'latest')
             return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
-          if (sortOption === 'bookmarks') return (b.savesCount || 0) - (a.savesCount || 0);
+          if (sortOption === 'saves') return (b.savesCount || 0) - (a.savesCount || 0);
           return 0;
         })
       : [];
@@ -95,10 +155,18 @@ const TipsSection: React.FC<TipsSectionProps> = ({
   const handleSlide = (direction: number) => {
     setDirection(direction);
     if (direction === -1) handlePrevPage();
-    if (direction === 1) handleNextPage(5);
+    if (direction === 1) handleNextPage(100);
   };
 
-  console.log(tips);
+  /** Card or BigCard 분기 */
+  const CardComponent = isBigCard ? BigCard : Card;
+  const SkeletonComponent = isBigCard ? SkeletonBigCard : SkeletonCard;
+
+  /** 열 개수 분기 */
+  const columns = isBigCard ? 4 : 5;
+  /** 스켈레톤/카드 표시 개수 분기 */
+  const itemCount = isBigCard ? 8 : 5;
+
   return (
     <SectionContainer>
       <SectionHeader>
@@ -116,7 +184,7 @@ const TipsSection: React.FC<TipsSectionProps> = ({
               <SortButton $active={sortOption === 'likes'} onClick={() => setSortOption('likes')}>
                 <Typography variant="bodyXSmall">좋아요순</Typography>
               </SortButton>
-              <SortButton $active={sortOption === 'bookmarks'} onClick={() => setSortOption('bookmarks')}>
+              <SortButton $active={sortOption === 'saves'} onClick={() => setSortOption('saves')}>
                 <Typography variant="bodyXSmall">저장많은순</Typography>
               </SortButton>
             </>
@@ -126,6 +194,7 @@ const TipsSection: React.FC<TipsSectionProps> = ({
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <CardsWrapper
               key={page}
+              columns={columns}
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -133,12 +202,12 @@ const TipsSection: React.FC<TipsSectionProps> = ({
               exit="exit"
               transition={{ duration: 0.5 }}
             >
-              {loading
-                ? Array.from({ length: 5 }).map((_, index) => <SkeletonCard key={index} />)
+              {isFetching
+                ? Array.from({ length: itemCount }).map((_, index) => <SkeletonComponent key={index} />)
                 : sortedItems
-                    .slice(0, 5)
+                    .slice(0, itemCount)
                     .map((item: TipItem, index: number) => (
-                      <Card
+                      <CardComponent
                         key={index}
                         image={item?.imageUrls[0]?.media_url || dummyImage}
                         text={item.title}
@@ -235,9 +304,9 @@ const CardsOuterWrapper = styled.div`
   min-height: 300px;
 `;
 
-const CardsWrapper = styled(motion.div)`
+const CardsWrapper = styled(motion.div)<{ columns: number }>`
   display: grid;
-  grid-template-columns: repeat(5, minmax(240px, 1fr));
+  grid-template-columns: repeat(${(p) => p.columns}, minmax(240px, 1fr));
   gap: 20px;
   position: relative;
   max-width: 1280px; /* 원하는 최대 너비 설정 */

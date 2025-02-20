@@ -1,86 +1,77 @@
-import { useEffect } from 'react';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import Typography from '@components/common/typography';
 import Tag from '@components/Tag/Tag';
-
-interface MagazineDetail {
-  id: string;
-  image: string;
-  title: string;
-  author: string;
-  date: string;
-  tags: string[];
-  description: string;
-  externalLink: string;
-}
-const dummyDetails: MagazineDetail[] = [
-  {
-    id: '1',
-    image: 'https://i.ibb.co/SXSyhmX6/image-11.png',
-    title: '서리풀 보디가드 [주거안전] - 홈방범 시스템',
-    author: '서초1인가구지원센터',
-    date: '2024.12.30',
-    tags: ['보안', '도어가드', '홈케어'],
-    description: `홈 방범 시스템
-
-- 도어가드벨, 몰카안심 존 등 1인세 설치
-- 설치비: 무료
-- 연이용료: 9,900원
-- 대상: 인터넷(유선) 설치가 되어있는 서초구 거주 1인가구
-- 무인경비서비스 설치 주택 적용 불가 (신규 아파트, 신규 오피스텔, 청년주택 등)
-
-문의: 서초1인가구지원센터`,
-    externalLink: 'https://example.com',
-  },
-];
+import { usePolicyGuide } from '@apis/queries/usePolicyQueries';
+import ImageModal from '@components/Modal/image';
 
 const MagazineDetailPage: React.FC = () => {
   const { magazineId } = useParams<{ magazineId: string }>();
+  const { data, isLoading } = usePolicyGuide({ policyId: Number(magazineId) });
+  console.log('매거진', data);
+
+  const formattedDescription = data?.description
+    .replace(/ {5,}/g, '\n\n') // 공백 5칸 이상 -> \n\n
+    .replace(/ {3,4}/g, '\n'); // 공백 3~4칸 -> \n
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // TODO: 추후 API 연동 시, 실제 데이터 불러오도록 수정
-  const detail = dummyDetails.find((item) => item.id === magazineId);
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsModalOpen(true);
+  };
 
-  if (!detail) {
-    return <Container>해당 매거진을 찾을 수 없습니다.</Container>;
+  if (isLoading) {
+    return;
   }
 
   return (
     <Container>
-      <Image src={detail.image || '/placeholder.svg'} alt={detail.title} />
+      <Image
+        src={data?.image_url_list || '/placeholder.svg'}
+        alt={data?.title}
+        onClick={() => data?.image_url_list && handleImageClick(data?.image_url_list)}
+      />
       <Title>
-        <Typography variant="titleMedium">{detail.title}</Typography>
+        <Typography variant="titleMedium">{data?.title}</Typography>
       </Title>
       <AuthorContainer>
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <ProfileImage />
+          <ProfileImage
+            src={data?.organization.image || '/default-profile.png'}
+            alt={data?.organization.name}
+            hasImage={!!data?.organization.image}
+          />
           <Author>
-            <Typography variant="titleXxSmall">{detail.author}</Typography>
+            <Typography variant="titleXxSmall">{data?.organization.name}</Typography>
           </Author>
         </div>
         <Date>
-          <Typography variant="bodySmall">{detail.date}</Typography>
+          <Typography variant="bodySmall">{data?.updated_at.slice(0, 10)}</Typography>
         </Date>
       </AuthorContainer>
-      <Tags>
-        {detail.tags.map((tag) => (
-          <Tag key={tag} text={tag} selected />
-        ))}
-      </Tags>
+      <Tags>{data?.hashtag?.map((tag) => <Tag key={tag.id} text={tag.name} selected />) ?? []}</Tags>
       <Description>
-        <Typography variant="bodySmall">{detail.description}</Typography>
+        <Typography variant="bodySmall">{formattedDescription}</Typography>
       </Description>
       <Line />
-      <Button href={detail.externalLink} target="_blank" rel="noopener noreferrer">
+      <Button href={data?.policy_url} target="_blank" rel="noopener noreferrer">
         <Typography variant="titleXSmall">해당 페이지로 이동하기</Typography>
       </Button>
+      {isModalOpen && selectedImage && <ImageModal imageUrl={selectedImage} onClose={() => setIsModalOpen(false)} />}
     </Container>
   );
 };
+
+export default MagazineDetailPage;
 
 const Container = styled.div`
   max-width: 1280px;
@@ -90,10 +81,11 @@ const Container = styled.div`
 
 const Image = styled.img`
   width: 100%;
-  height: 200px;
+  height: 400px;
   object-fit: cover;
   border-radius: 20px;
   margin-bottom: 32px;
+  cursor: pointer;
 `;
 
 const Title = styled.div`
@@ -110,11 +102,13 @@ const AuthorContainer = styled.div`
   margin-bottom: 32px;
 `;
 
-const ProfileImage = styled.div`
+const ProfileImage = styled.img<{ hasImage: boolean }>`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.text.lightGray};
+  object-fit: cover;
+  background-color: ${({ hasImage, theme }) => (hasImage ? theme.colors.text.white : theme.colors.text.lightGray)};
+  box-shadow: ${({ hasImage }) => (hasImage ? '0px 4px 10px rgba(0, 0, 0, 0.15)' : 'none')};
 `;
 
 const Author = styled.div`
@@ -162,5 +156,3 @@ const Button = styled.a`
     background-color: ${({ theme }) => theme.colors.primary[600]};
   }
 `;
-
-export default MagazineDetailPage;

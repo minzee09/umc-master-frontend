@@ -14,6 +14,9 @@ export interface NewPost {
   imageUrls: File[];
 }
 
+export interface GetSavedParams {
+  page: number;
+}
 export const getTips = async ({ pageParam, sorted }: GetTipsParams) => {
   const { data } = await axiosInstance.get(`/tips/sorted?page=${pageParam}&limit=5&sort=${sorted}`);
   return data;
@@ -50,4 +53,28 @@ export const createPost = async (newPost: NewPost): Promise<void> => {
   }
 };
 
-// 다른 Tips 관련 API들...
+export const getSavedTips = async () => {
+  try {
+    const { data } = await axiosInstance.get(`/users/saved-tips`);
+    console.log('저장된 꿀팁 API 응답:', data.result);
+    return data.result;
+  } catch (error: any) {
+    console.error('저장된 꿀팁 API 에러 발생:', error.response?.status, error.response?.data);
+    throw new Error(`저장된 꿀팁 API 요청 실패: ${error.response?.status}`);
+  }
+};
+
+export const getTipDetail = async (tipId: number) => {
+  const { data } = await axiosInstance.get(`/tips/${tipId}`);
+  return data.result;
+};
+
+export const toggleLike = async (tipId: number) => {
+  const response = await axiosInstance.post(`/tips/${tipId}/like`);
+  return response.data;
+};
+
+export const toggleBookmark = async (tipId: number) => {
+  const response = await axiosInstance.post(`/tips/${tipId}/bookmark`);
+  return response.data;
+};

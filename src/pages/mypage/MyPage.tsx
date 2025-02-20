@@ -2,7 +2,7 @@ import styled, { useTheme } from "styled-components";
 import ProfileSection from "./components/ProfileSection";
 import RecentTips from "./components/RecentTips";
 import BestInterest from "./components/BestInterest";
-import { dummyData, dummyInterests } from "./dummyData/dummyData";
+import { dummyInterests } from "./dummyData/dummyData";
 import Typography from "@components/common/typography";
 
 const MyPage: React.FC = () => {
@@ -17,7 +17,7 @@ const MyPage: React.FC = () => {
             >마이페이지</Typography>
           <ProfileSection/>
           <ProfileCard>
-            <RecentTips items={dummyData}/>
+            <RecentTips/>
             <BestInterest interests={dummyInterests}/>
           </ProfileCard>
         </MyPageForm>
@@ -40,10 +40,19 @@ const MyPageForm = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 1280px;
+  width: 1440px;
   gap: 48px;
-  padding-top: 80px;
-  padding-bottom: 100px;
+  padding: 80px 0px 100px;
+
+  @media (max-width: 1024px) {
+    gap: 32px;
+    padding: 60px 16px 80px;
+  }
+
+  @media (max-width: 768px) {
+    gap: 24px;
+    padding: 40px 12px 60px;
+  }
 `
 
 const ProfileCard = styled.div`
@@ -51,4 +60,15 @@ const ProfileCard = styled.div`
   flex-direction: row;
   gap: 30px;
   flex-shrink: 0;
+  width: 100%;
+
+  @media (max-width: 1024px) {
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
 `

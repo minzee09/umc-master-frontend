@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import Typography from "@components/common/typography";
 import CategoryInputSection from "@pages/main/components/CategoriesInputSection";
 import { useState } from "react";
@@ -16,7 +17,7 @@ const dummyCategories = [
   { section: '주거', tags: ['주택', '원룸', '빌라', '아파트', '기숙사'] },
 ];
 
-const InterestForm: React.FC = () => {
+const InterestForm: React.FC<{ onHashtagChange: (hashtags: string[]) => void }> = ({ onHashtagChange }) => {
   
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -24,6 +25,8 @@ const InterestForm: React.FC = () => {
     const isSelected = selectedTags.includes(tag);
     const updatedTags = isSelected ? selectedTags.filter((t) => t !== tag) : [...selectedTags, tag];
     setSelectedTags(updatedTags);
+    onHashtagChange(updatedTags); // 상위 컴포넌트로 업데이트
+    console.log("해시태그: ", updatedTags);
   };
 
   const theme = useTheme();

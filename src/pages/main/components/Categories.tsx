@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import styled from 'styled-components';
 import '@fortawesome/fontawesome-free/css/all.css';
 import Typography from '@components/common/typography';
@@ -18,14 +19,20 @@ const dummyCategories = [
   { section: '주거', tags: ['주택', '원룸', '빌라', '아파트', '기숙사'] },
 ];
 
-const InterestsAndCategories: React.FC = () => {
-  const [isCategoryVisible, setIsCategoryVisible] = useState(true);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const { user, fetchUser } = useUserStore();
+interface InterestsAndCategoriesProps {
+  userHashtags?: string[];
+}
+
+const InterestsAndCategories: React.FC<InterestsAndCategoriesProps> = ({ userHashtags }) => {
+  const [isCategoryVisible, setIsCategoryVisible] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>(userHashtags || []); // 초기값으로 userHashtags 설정
+  const { user, updateProfile, fetchUser } = useUserStore();
 
   useEffect(() => {
-    fetchUser();
-  }, []);
+    if (userHashtags) {
+      setSelectedTags(userHashtags);
+    }
+  }, [userHashtags]);
 
   const handleTagClick = (tag: string) => {
     setSelectedTags((prev) => {
@@ -40,9 +47,24 @@ const InterestsAndCategories: React.FC = () => {
     });
   };
 
-  const handleComplete = () => {
-    alert('관심사 재설정이 완료되었습니다.');
-    setIsCategoryVisible(false);
+  const handleComplete = async () => {
+    try {
+      await updateProfile({
+        nickname: user?.nickname,
+        city: user?.city || '',
+        district: user?.district || '',
+        hashtags: selectedTags,
+      });
+
+      await fetchUser();
+
+      alert('관심사 재설정이 완료되었습니다.');
+
+      setIsCategoryVisible(false);
+    } catch (error) {
+      alert('관심사 업데이트에 실패했습니다.');
+      console.error(error);
+    }
   };
 
   const toggleCategoryVisibility = () => {

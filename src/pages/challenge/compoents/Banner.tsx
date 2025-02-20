@@ -6,7 +6,7 @@ import mainCharacter from '@assets/mainCharacter2.png';
 const Banner: React.FC = () => {
   const navigate = useNavigate();
   const onClickCreateBTN = () => {
-    navigate(`/main`); /* MyChallengePage 나오면 수정 예정 */
+    navigate(`/mychallenge`); /* MyChallengePage 나오면 수정 예정 */
   };
   return (
     <Container>
@@ -41,6 +41,7 @@ const TipCreateBTN = styled.button`
   background-color: ${({ theme }) => theme.colors.text['white']};
   border-radius: 50px;
   color: ${({ theme }) => theme.colors.text['black']};
+  cursor: pointer;
 `;
 
 const Image = styled.img`

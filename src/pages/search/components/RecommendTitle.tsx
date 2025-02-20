@@ -9,7 +9,7 @@ const RecommendTitle: React.FC<RecommendProps> = ({ title }) => {
   return (
     <SearchText>
       {title && <Highlight>{`'${title}'`}</Highlight>}
-      {`에 대해서 관심있으면 이건 어떤가요?`}
+      {` 에 대한 저장 많은 순 검색 결과입니다`}
     </SearchText>
   );
 };

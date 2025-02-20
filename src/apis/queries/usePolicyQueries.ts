@@ -1,4 +1,4 @@
-import { getPolicies, getPolicyGuide } from '@apis/policyApi';
+import { getPolicies, getPolicyGuide, getPopularHashtags } from '@apis/policyApi';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 interface PolicyListParams {
@@ -22,5 +22,12 @@ export const usePolicyGuide = ({ policyId }: PolicyGuideParams) => {
     queryKey: ['policyGuide', policyId],
     queryFn: () => getPolicyGuide({ policyId }),
     placeholderData: keepPreviousData,
+  });
+};
+
+export const usePopularHashtags = ({ limit }: { limit: number }) => {
+  return useQuery({
+    queryKey: ['hashtag'],
+    queryFn: () => getPopularHashtags({ limit }),
   });
 };

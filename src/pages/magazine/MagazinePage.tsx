@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
 import { useEffect } from 'react';
 import styled from 'styled-components';
 import Typography from '@components/common/typography';
 import MindMap from './components/mindMap';
 import CardGrid, { CardGridData } from './components/cardGrid';
 import dummyImg from '@assets/dummyImage/dummy.jpeg';
+import { usePolicies } from '@apis/queries/usePolicyQueries';
 
 const generateDummyData = (): CardGridData[] => {
   return Array.from({ length: 9 }, (_, index) => ({
@@ -17,7 +20,7 @@ const generateDummyData = (): CardGridData[] => {
 };
 
 const MagazinePage = () => {
-  const programData = generateDummyData();
+  const { data: policiesData } = usePolicies({ locationId: 17 });
   const influencerData = generateDummyData();
 
   useEffect(() => {
@@ -31,9 +34,9 @@ const MagazinePage = () => {
       </Title>
       <MindMap />
       <Title>
-        <Typography variant="headingXxSmall">서초구 지원 프로그램</Typography>
+        <Typography variant="headingXxSmall">종로구 지원 프로그램</Typography>
       </Title>
-      <CardGrid cards={programData} />
+      <CardGrid cards={policiesData || []} />
       <Title>
         <Typography variant="headingXxSmall">인플루언서 꿀팁</Typography>
       </Title>

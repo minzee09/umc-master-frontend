@@ -2,6 +2,16 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import CardInfo from '@components/Card/CardInfo';
+import dummyImg from '@assets/dummyImage/dummy.jpeg';
+
+export interface PolicyData {
+  id: number;
+  title: string;
+  imageUrl: string;
+  likeCount: number;
+  bookmarkCount: number;
+  createAt: string;
+}
 
 export interface CardGridData {
   id: string;
@@ -13,12 +23,24 @@ export interface CardGridData {
 }
 
 interface CardGridProps {
-  cards: CardGridData[];
+  cards: PolicyData[] | undefined;
 }
 
 interface ProcessedCardData extends CardGridData {
   columnSpan: number;
 }
+
+const transformPolicies = (policies: PolicyData[] | undefined): CardGridData[] => {
+  if (!policies) return [];
+  return policies.map((policy) => ({
+    id: policy.id.toString(),
+    image: policy.imageUrl || dummyImg, // 이미지 없을 경우 기본값
+    text: policy.title,
+    likes: policy.likeCount ?? 0, // undefined 방지
+    bookmarks: policy.bookmarkCount ?? 0, // undefined 방지
+    date: new Date(policy.createAt).toLocaleDateString('ko-KR'),
+  }));
+};
 
 const generatePattern = (): number[] => {
   const patterns = [
@@ -46,7 +68,9 @@ const applyPatternToCards = (cards: CardGridData[]): ProcessedCardData[] => {
 
 const CardGrid: React.FC<CardGridProps> = ({ cards }) => {
   const navigate = useNavigate();
-  const updatedCards = applyPatternToCards(cards);
+
+  const transformedCards = transformPolicies(cards);
+  const updatedCards = applyPatternToCards(transformedCards);
 
   const handleClick = (id: string) => {
     navigate(`/magazine/${id}`);
@@ -78,7 +102,7 @@ const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  align-items: start; // 카드가 위쪽부터 정렬되도록 유지
+  align-items: start;
 `;
 
 const GridItem = styled.div<{ columnSpan: number }>`

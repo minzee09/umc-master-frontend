@@ -9,7 +9,7 @@ interface TokenStore {
 
 export const useTokenStore = create<TokenStore>((set) => ({
   accessToken: null,
-  refreshToken: `${import.meta.env.VITE_REFRESH_TOKEN}` /* 로그인 기능 완성 후 수정 예정임 */,
+  refreshToken: null /* 로그인 기능 완성 후 수정 예정임 */,
   setTokens: (tokens) => {
     // console.log('Setting Tokens:', tokens);
     set(() => ({

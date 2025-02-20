@@ -1,11 +1,12 @@
-import RoutePaths from '@router/routePaths';
 import { useTokenStore } from '@store/tokenStore';
 import axios, { AxiosInstance } from 'axios';
+
+const { accessToken } = useTokenStore.getState();
 
 const axiosInstance: AxiosInstance = axios.create({
   headers: {
     accept: 'application/json',
-    Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`,
+    Authorization: `Bearer ${accessToken}`,
   },
   baseURL: import.meta.env.VITE_BASE_URL,
 });
@@ -68,11 +69,6 @@ axiosInstance.interceptors.response.use(
         // 토큰 갱신 실패 시 명확한 로그아웃 처리
         console.error('토큰 갱신 실패:', refreshError);
         useTokenStore.getState().clearTokens();
-
-        // 로그인 페이지로 리다이렉트
-        if (window.location.pathname !== RoutePaths.LOGIN) {
-          window.location.href = RoutePaths.LOGIN;
-        }
 
         return Promise.reject(refreshError);
       }

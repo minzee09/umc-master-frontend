@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Input from '@components/Input/Input';
 import useInput from '@hooks/useInput';
 import { validateEmailFormat, validatePasswordFormat } from '@utils/validation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@components/Button/Button';
 import Kakao_Image from '@assets/kakao_login/kakao_login_large_wide.png';
 import { useNavigate } from 'react-router-dom';
@@ -12,14 +12,49 @@ import axiosInstance from '@apis/axios-instance';
 import { useAuthStore } from '@store/authStore';
 import { useTokenStore } from '@store/tokenStore';
 
+const KAKAO_REDIRECT_URI =
+  import.meta.env.MODE === 'development'
+    ? 'http://localhost:5173/oauth/kakao/callback'
+    : 'https://www.hmaster.shop/oauth/kakao/callback';
+
 const InputForm: React.FC = () => {
   const { setAuth } = useAuthStore();
-  const { setTokens } = useTokenStore.getState();
+  const { setTokens } = useTokenStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!window.Kakao) {
+      console.warn('⚠️ window.Kakao가 없음, SDK 로드 시작');
+
+      const script = document.createElement('script');
+      script.src = 'https://developers.kakao.com/sdk/js/kakao.js';
+      script.async = true;
+      script.onload = () => {
+        console.log('✅ 카카오 SDK 로드 완료:', window.Kakao);
+        if (window.Kakao && !window.Kakao.isInitialized()) {
+          console.error('❌ window.Kakao는 있지만 초기화되지 않음! init() 필요');
+          window.Kakao.init(import.meta.env.VITE_JAVASCRIPT_KEY);
+          console.log('✅ 카카오 SDK 강제 초기화 완료');
+        }
+      };
+      document.head.appendChild(script);
+    } else {
+      console.log('✅ window.Kakao 이미 로드됨');
+      if (!window.Kakao.isInitialized()) {
+        console.error('❌ window.Kakao는 있지만 초기화되지 않음! init() 필요');
+        window.Kakao.init(import.meta.env.VITE_JAVASCRIPT_KEY);
+        console.log('✅ 카카오 SDK 강제 초기화 완료');
+      }
+    }
+  }, []);
 
   const handleKakaoLogin = () => {
-    const KAKAO_API_KEY = import.meta.env.VITE_KAKAO_API_KEY;
-    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_API_KEY}&redirect_uri=http://localhost:3000/oauth/kakao/callback&response_type=code`;
-    window.location.href = kakaoAuthUrl;
+    const clientId = import.meta.env.VITE_JAVASCRIPT_KEY;
+    const redirectUri = encodeURIComponent(KAKAO_REDIRECT_URI);
+    const fallbackUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+
+    console.log('✅ fallback URL로 리디렉션:', fallbackUrl);
+    window.location.href = fallbackUrl;
   };
 
   const handleEmailLogin = async () => {
@@ -72,13 +107,12 @@ const InputForm: React.FC = () => {
     e.preventDefault();
     setIsSubmitted(true);
 
-    // 이메일 및 비밀번호가 비어있는지 체크하고 오류 메시지 표시
     if (!email) {
       handleEmailError('이메일을 입력해주세요.');
     } else {
       const emailError = validateEmailFormat(email);
       if (emailError) {
-        handleEmailError(emailError); // 이메일 오류 처리
+        handleEmailError(emailError);
       }
     }
 
@@ -87,7 +121,7 @@ const InputForm: React.FC = () => {
     } else {
       const passwordError = validatePasswordFormat(password);
       if (passwordError) {
-        handlePasswordError(passwordError); // 비밀번호 오류 처리
+        handlePasswordError(passwordError);
       }
     }
 
@@ -110,8 +144,6 @@ const InputForm: React.FC = () => {
     await handleEmailLogin();
   };
 
-  const navigate = useNavigate(); // 추가
-
   return (
     <LoginInputForm onSubmit={formSubmitHandler}>
       <LoginInput>
@@ -132,7 +164,7 @@ const InputForm: React.FC = () => {
         <Button variant="primary" type="submit">
           로그인하기
         </Button>
-        <Button variant="kakao" onClick={handleKakaoLogin}>
+        <Button variant="kakao" type="button" onClick={handleKakaoLogin}>
           <KakaoImage src={Kakao_Image} alt="Kakao Login" />
         </Button>
       </Buttons>
